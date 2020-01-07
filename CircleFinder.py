@@ -8,7 +8,7 @@ import sensor, image, time
 
 
 sensor.reset() # Initialize the camera sensor.
-sensor.set_pixformat(sensor.RGB565) # use RGB565.
+sensor.set_pixformat(sensor.GRAYSCALE) # use RGB565.#灰度图
 sensor.set_framesize(sensor.QVGA) # use QQVGA for speed.
 sensor.skip_frames(time = 2000) # Let new settings take affect.
 #设置相机亮度
@@ -33,24 +33,25 @@ class Get_Center:
     def find_max(blobs):
         max_size=0
         for blob in blobs:
-            if blob[2]*blob[3] > max_size: #blob[2]和blob[3]表示宽高
+            if blob[2]*blob[2] > max_size: #blob[2]和blob[3]表示宽高
                 max_blob=blob
-                max_size = blob[2]*blob[3]
-        temp = max_blob
-        blobs.remove(max_blob)
-        return temp
+                max_size = blob[2]*blob[2]
+        return max_blob
 
     def find_center_point(max_blob):
-        center_x_1 = max_blob[0][0]+max_blob[0][2]/2 #the center_x of the first rectangle
-        center_y_1 = max_blob[0][1]+max_blob[0][3]/2 #the center_y of the first rectangle
-        center_x_2 = max_blob[1][0]+max_blob[1][2]/2 #the center_x of the second rectangle
-        center_y_2 = max_blob[1][1]+max_blob[1][3]/2 #the center_y of the second rectangle
-        return int((center_x_1+center_x_2)/2),int((center_y_1+center_y_2)/2)
+        center_x_1 = max_blob[0]+max_blob[2]/2 #the center_x of the first rectangle
+        center_y_1 = max_blob[1]+max_blob[3]/2 #the center_y of the first rectangle
+
+        return int(center_x_1),int((center_y_1))
 
 
     #this function must be test before using
     def send_message_to_DK():
-        return center_x , center_y
+        if(center_x == 0|center_y ==0)
+            self.center_x , self.center_y
+        else
+            return center_x , center_y
+
 
     def main_function():
         pass
@@ -62,31 +63,31 @@ while(True):
     img = sensor.snapshot() # Take a picture and return the image.
     print("fps",clock.fps())
     #img.to_grayscale()
-    b=img.close(1)
-    blobs = img.find_rects(threshold = 10000)
+    img=img.close(1) #看具体情况有没有必要
+    blobs = img.find_circles(threshold = 2000)
 
-    if blobs:
-        if len(blobs)==2:
-            for i in range(2):
-               max_blob.append(find_max(blobs))
+    #if blobs:
+        #if len(blobs)==2:
+            #for i in range(2):
+               #max_blob.append(find_max(blobs))
 
-    center_x , center_y = get_center = find_center_point(max_blob)
+    center_x , center_y = get_center.find_center_point(max_blobs)
 
     get_center.send_massage_to_DK()
 
     #max_blob_1,max_blob_2 = find_max(blobs)
-    x_error = max_blob[0][0]+max_blob[0][2]/2-img.width()/2   #横坐标
-    h_error = max_blob[0][2]*max_blob[0][3]-size_threshold  #大小误差
+    x_error = max_blob[0]-img.width()/2   #横坐标
+    h_error = 3.14*max_blob[2]*max_blob[2]-size_threshold  #大小误差
     print("x error: ", x_error)
 
     #for b in blobs:
         ## Draw a rect around the blob.
         #img.draw_rectangle(b[0:4]) # rect
         #img.draw_cross(int(b[0]+b[2]/2),int(b[1]+b[3]/2)) # cx, cy
-    if (len(max_blob)==2):
-        img.draw_rectangle(max_blob[0][0:4]) # rect
-        img.draw_rectangle(max_blob[1][0:4]) # rect
-        img.draw_cross(int(max_blob[0][0]+max_blob[0][2]/2),int(max_blob[0][1]+max_blob[0][3]/2)) # cx, cy
+    if (len(max_blob)==1):
+        img.draw_circle(max_blob[0],max_blob[1],max_blob[3],color =(255,0,0),fill = True) # rect
+        #img.draw_rectangle(max_blob[0:4]) # rect
+        img.draw_cross(int(max_blob[0]),int(max_blob[1])) # cx, cy
         print("h_output",h_error)
 
 
